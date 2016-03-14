@@ -22,6 +22,7 @@ import org.assertj.assertions.generator.data.Primitives;
 import org.assertj.assertions.generator.data.Team;
 import org.assertj.assertions.generator.data.nba.Player;
 import org.assertj.assertions.generator.data.nba.PlayerAgent;
+import org.assertj.assertions.generator.data.skipped.PartiallySkipped;
 import org.assertj.assertions.generator.description.ClassDescription;
 import org.assertj.assertions.generator.description.converter.ClassToClassDescriptionConverter;
 import org.junit.Before;
@@ -115,6 +116,12 @@ public class AssertionGeneratorTest implements NestedClassesTest, BeanWithExcept
 	public void should_generate_assertion_for_class_with_interferenceprimitives() throws Exception {
 		assertionGenerator.generateCustomAssertionFor(converter.convertToClassDescription(InterferencePrimitives.class));
 		assertGeneratedAssertClass(InterferencePrimitives.class, "InterferencePrimitivesAssert.expected.txt");
+	}
+
+	@Test
+	public void should_generate_assertion_for_partially_skipped_class() throws Exception {
+		assertionGenerator.generateCustomAssertionFor(converter.convertToClassDescription(PartiallySkipped.class));
+		assertGeneratedAssertClass(PartiallySkipped.class, "PartiallySkippedAssert.expected.txt");
 	}
 
   @Test

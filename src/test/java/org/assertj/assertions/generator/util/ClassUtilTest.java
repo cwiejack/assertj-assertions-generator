@@ -12,27 +12,6 @@
  */
 package org.assertj.assertions.generator.util;
 
-import static org.assertj.assertions.generator.util.ClassUtil.collectClasses;
-import static org.assertj.assertions.generator.util.ClassUtil.declaredGetterMethodsOf;
-import static org.assertj.assertions.generator.util.ClassUtil.getClassesRelatedTo;
-import static org.assertj.assertions.generator.util.ClassUtil.getNegativePredicateFor;
-import static org.assertj.assertions.generator.util.ClassUtil.getPredicatePrefix;
-import static org.assertj.assertions.generator.util.ClassUtil.getSimpleNameWithOuterClass;
-import static org.assertj.assertions.generator.util.ClassUtil.getSimpleNameWithOuterClassNotSeparatedByDots;
-import static org.assertj.assertions.generator.util.ClassUtil.getterMethodsOf;
-import static org.assertj.assertions.generator.util.ClassUtil.inheritsCollectionOrIsIterable;
-import static org.assertj.assertions.generator.util.ClassUtil.isPredicate;
-import static org.assertj.assertions.generator.util.ClassUtil.isStandardGetter;
-import static org.assertj.assertions.generator.util.ClassUtil.isValidGetterName;
-import static org.assertj.assertions.generator.util.ClassUtil.propertyNameOf;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
 import org.assertj.assertions.generator.NestedClassesTest;
 import org.assertj.assertions.generator.data.ArtWork;
 import org.assertj.assertions.generator.data.BeanWithOneException;
@@ -51,10 +30,33 @@ import org.assertj.assertions.generator.data.lotr.Ring;
 import org.assertj.assertions.generator.data.lotr.TolkienCharacter;
 import org.assertj.assertions.generator.data.nba.Player;
 import org.assertj.assertions.generator.data.nba.PlayerAgent;
+import org.assertj.assertions.generator.data.skipped.PartiallySkipped;
+import org.assertj.assertions.generator.data.skipped.SkippedClass;
 import org.junit.Test;
 import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
+
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
+import static org.assertj.assertions.generator.util.ClassUtil.collectClasses;
+import static org.assertj.assertions.generator.util.ClassUtil.declaredGetterMethodsOf;
+import static org.assertj.assertions.generator.util.ClassUtil.getClassesRelatedTo;
+import static org.assertj.assertions.generator.util.ClassUtil.getNegativePredicateFor;
+import static org.assertj.assertions.generator.util.ClassUtil.getPredicatePrefix;
+import static org.assertj.assertions.generator.util.ClassUtil.getSimpleNameWithOuterClass;
+import static org.assertj.assertions.generator.util.ClassUtil.getSimpleNameWithOuterClassNotSeparatedByDots;
+import static org.assertj.assertions.generator.util.ClassUtil.getterMethodsOf;
+import static org.assertj.assertions.generator.util.ClassUtil.inheritsCollectionOrIsIterable;
+import static org.assertj.assertions.generator.util.ClassUtil.isPredicate;
+import static org.assertj.assertions.generator.util.ClassUtil.isStandardGetter;
+import static org.assertj.assertions.generator.util.ClassUtil.isValidGetterName;
+import static org.assertj.assertions.generator.util.ClassUtil.propertyNameOf;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Theories.class)
 public class ClassUtilTest implements NestedClassesTest {
@@ -64,6 +66,17 @@ public class ClassUtilTest implements NestedClassesTest {
   @Test
   public void should_get_class_only() {
     assertThat(collectClasses(getClass().getClassLoader(), Movie.class.getName())).containsOnly(Movie.class);
+  }
+
+  @Test
+  public void should_not_include_class_marked_with_skipped_annotation() {
+    assertThat(collectClasses(getClass().getClassLoader(), SkippedClass.class.getName())).isEmpty();
+  }
+
+  @Test
+  public void should_not_include_class_marked_with_skipped_annotation_by_package_scan() {
+    Set<Class<?>> classesInPackage = collectClasses("org.assertj.assertions.generator.data.skipped");
+    assertThat(classesInPackage).containsExactly(PartiallySkipped.class);
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -195,6 +208,15 @@ public class ClassUtilTest implements NestedClassesTest {
     Set<Method> playerGetterMethods = getterMethodsOf(Movie.class);
     assertThat(playerGetterMethods).contains(Movie.class.getMethod("getReleaseDate", NO_PARAMS),
                                              ArtWork.class.getMethod("getTitle", NO_PARAMS));
+  }
+
+  @Test
+  public void should_not_return_methods_marked_to_be_skipped() throws Exception {
+    final Set<Method> methods = getterMethodsOf(PartiallySkipped.class);
+    assertThat(methods)
+        .doesNotContain(PartiallySkipped.class.getMethod("isABoolean"))
+        .contains(PartiallySkipped.class.getMethod("isAnotherBoolean"));
+
   }
 
   @Test

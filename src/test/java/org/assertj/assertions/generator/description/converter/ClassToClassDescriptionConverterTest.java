@@ -12,12 +12,6 @@
  */
 package org.assertj.assertions.generator.description.converter;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.assertj.assertions.generator.BeanWithExceptionsTest;
 import org.assertj.assertions.generator.NestedClassesTest;
 import org.assertj.assertions.generator.data.ArtWork;
@@ -27,6 +21,7 @@ import org.assertj.assertions.generator.data.TreeEnum;
 import org.assertj.assertions.generator.data.lotr.FellowshipOfTheRing;
 import org.assertj.assertions.generator.data.nba.Player;
 import org.assertj.assertions.generator.data.nba.PlayerAgent;
+import org.assertj.assertions.generator.data.skipped.PartiallySkipped;
 import org.assertj.assertions.generator.description.ClassDescription;
 import org.assertj.assertions.generator.description.GetterDescription;
 import org.junit.BeforeClass;
@@ -34,6 +29,13 @@ import org.junit.Test;
 import org.junit.experimental.theories.Theories;
 import org.junit.experimental.theories.Theory;
 import org.junit.runner.RunWith;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.google.common.collect.Iterables.getOnlyElement;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Theories.class)
 public class ClassToClassDescriptionConverterTest implements NestedClassesTest, BeanWithExceptionsTest {
@@ -66,7 +68,18 @@ public class ClassToClassDescriptionConverterTest implements NestedClassesTest, 
 	assertThat(classDescription.getSuperType()).isEqualTo(ArtWork.class);
   }
 
-  @Theory
+    @Test
+    public void should_not_contain_skipped_values() {
+        final ClassDescription classDescription = converter.convertToClassDescription(PartiallySkipped.class);
+        assertThat(classDescription.getGettersDescriptions()).hasSize(1);
+        assertThat(getOnlyElement(classDescription.getGettersDescriptions()).getOriginalMember())
+            .isEqualTo("isAnotherBoolean");
+        assertThat(classDescription.getFieldsDescriptions()).hasSize(1);
+        assertThat(getOnlyElement(classDescription.getFieldsDescriptions()).getOriginalMember())
+            .isEqualTo("anotherField");
+    }
+
+	@Theory
   public void should_build_nestedclass_description(NestedClass nestedClass) throws Exception {
 	Class<?> clazz = nestedClass.getNestedClass();
 	ClassDescription classDescription = converter.convertToClassDescription(clazz);

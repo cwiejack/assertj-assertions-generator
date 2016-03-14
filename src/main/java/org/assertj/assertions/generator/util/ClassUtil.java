@@ -12,10 +12,12 @@
  */
 package org.assertj.assertions.generator.util;
 
-import static com.google.common.collect.Sets.newLinkedHashSet;
-import static java.lang.reflect.Modifier.isPublic;
-import static org.apache.commons.lang3.StringUtils.substringAfter;
-import static org.apache.commons.lang3.StringUtils.uncapitalize;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.ClassPath;
+import com.google.common.reflect.ClassPath.ClassInfo;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.assertj.assertions.generator.annotations.SkipAssertJGeneration;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,12 +47,10 @@ import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import com.google.common.collect.ImmutableSet;
-import com.google.common.reflect.ClassPath;
-import com.google.common.reflect.ClassPath.ClassInfo;
+import static com.google.common.collect.Sets.newLinkedHashSet;
+import static java.lang.reflect.Modifier.isPublic;
+import static org.apache.commons.lang3.StringUtils.substringAfter;
+import static org.apache.commons.lang3.StringUtils.uncapitalize;
 
 /**
  * Some utilities methods related to classes and packages.
@@ -93,7 +93,7 @@ public class ClassUtil {
     Set<Class<?>> classes = newLinkedHashSet();
     for (String classOrPackageName : classOrPackageNames) {
       Class<?> clazz = tryToLoadClass(classOrPackageName, classLoader);
-      if (clazz != null) {
+      if (clazz != null && !clazz.isAnnotationPresent(SkipAssertJGeneration.class)) {
         classes.add(clazz);
       } else {
         // should be a package
@@ -215,7 +215,7 @@ public class ClassUtil {
    */
   private static boolean isClassCandidateToAssertionsGeneration(Class<?> loadedClass) {
     return loadedClass != null && isPublic(loadedClass.getModifiers()) && !loadedClass.isAnonymousClass()
-           && !loadedClass.isLocalClass();
+           && !loadedClass.isLocalClass() && !loadedClass.isAnnotationPresent(SkipAssertJGeneration.class);
   }
 
   private static boolean isClass(String fileName) {
@@ -355,11 +355,15 @@ public class ClassUtil {
       Method method = methods[i];
       if (isPublic(method.getModifiers())
           && isNotDefinedInObjectClass(method)
-          && isGetter(method)) {
+          && isGetter(method) && notMarkedToBeSkipped(method)) {
         getters.add(method);
       }
     }
     return getters;
+  }
+
+  private static boolean notMarkedToBeSkipped(Method method) {
+    return !method.isAnnotationPresent(SkipAssertJGeneration.class);
   }
 
   private static boolean isGetter(Method method) {

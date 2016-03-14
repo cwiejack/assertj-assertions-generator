@@ -12,13 +12,6 @@
  */
 package org.assertj.assertions.generator.cli;
 
-import static com.google.common.collect.Sets.newLinkedHashSet;
-import static org.assertj.assertions.generator.util.ClassUtil.collectClasses;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Set;
-
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -31,10 +24,19 @@ import org.assertj.assertions.generator.description.converter.ClassToClassDescri
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Set;
+
+import static com.google.common.collect.Sets.newLinkedHashSet;
+import static org.assertj.assertions.generator.util.ClassUtil.collectClasses;
+
 
 public class AssertionGeneratorLauncher {
 
   private static final Logger logger = LoggerFactory.getLogger(AssertionGeneratorLauncher.class);
+
+
   private static ClassToClassDescriptionConverter classDescriptionConverter = new ClassToClassDescriptionConverter();
 
   public static void main(String[] args) throws IOException {

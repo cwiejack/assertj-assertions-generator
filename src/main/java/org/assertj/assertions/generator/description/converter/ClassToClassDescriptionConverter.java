@@ -12,14 +12,14 @@
  */
 package org.assertj.assertions.generator.description.converter;
 
-import static org.apache.commons.lang3.StringUtils.remove;
-import static org.assertj.assertions.generator.util.ClassUtil.declaredGetterMethodsOf;
-import static org.assertj.assertions.generator.util.ClassUtil.declaredPublicFieldsOf;
-import static org.assertj.assertions.generator.util.ClassUtil.getterMethodsOf;
-import static org.assertj.assertions.generator.util.ClassUtil.inheritsCollectionOrIsIterable;
-import static org.assertj.assertions.generator.util.ClassUtil.isArray;
-import static org.assertj.assertions.generator.util.ClassUtil.nonStaticPublicFieldsOf;
-import static org.assertj.assertions.generator.util.ClassUtil.propertyNameOf;
+import com.google.common.annotations.VisibleForTesting;
+import org.assertj.assertions.generator.annotations.SkipAssertJGeneration;
+import org.assertj.assertions.generator.description.ClassDescription;
+import org.assertj.assertions.generator.description.FieldDescription;
+import org.assertj.assertions.generator.description.GetterDescription;
+import org.assertj.assertions.generator.description.TypeDescription;
+import org.assertj.assertions.generator.description.TypeName;
+import org.assertj.assertions.generator.util.ClassUtil;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.GenericArrayType;
@@ -31,14 +31,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.assertj.assertions.generator.description.ClassDescription;
-import org.assertj.assertions.generator.description.FieldDescription;
-import org.assertj.assertions.generator.description.GetterDescription;
-import org.assertj.assertions.generator.description.TypeDescription;
-import org.assertj.assertions.generator.description.TypeName;
-import org.assertj.assertions.generator.util.ClassUtil;
-
-import com.google.common.annotations.VisibleForTesting;
+import static org.apache.commons.lang3.StringUtils.remove;
+import static org.assertj.assertions.generator.util.ClassUtil.declaredGetterMethodsOf;
+import static org.assertj.assertions.generator.util.ClassUtil.declaredPublicFieldsOf;
+import static org.assertj.assertions.generator.util.ClassUtil.getterMethodsOf;
+import static org.assertj.assertions.generator.util.ClassUtil.inheritsCollectionOrIsIterable;
+import static org.assertj.assertions.generator.util.ClassUtil.isArray;
+import static org.assertj.assertions.generator.util.ClassUtil.nonStaticPublicFieldsOf;
+import static org.assertj.assertions.generator.util.ClassUtil.propertyNameOf;
 
 public class ClassToClassDescriptionConverter implements ClassDescriptionConverter<Class<?>> {
 
@@ -88,7 +88,10 @@ public class ClassToClassDescriptionConverter implements ClassDescriptionConvert
   private Set<FieldDescription> doFieldDescriptionsOf(List<Field> fields) {
 	Set<FieldDescription> fieldDescriptions = new TreeSet<FieldDescription>();
 	for (Field field : fields) {
-	  fieldDescriptions.add(new FieldDescription(field.getName(), getTypeDescription(field)));
+		if (field.isAnnotationPresent(SkipAssertJGeneration.class)) {
+			continue;
+		}
+		fieldDescriptions.add(new FieldDescription(field.getName(), getTypeDescription(field)));
 	}
 	return fieldDescriptions;
   }
